@@ -1,0 +1,447 @@
+unit game_unit;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  Grids, StdCtrls;
+
+{ TGame_Form }
+
+type
+  TGame_Form = class(TForm)
+    map_grid: TStringGrid;
+    Pac_timer: TTimer;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: char);
+    procedure Pac_timerTimer(Sender: TObject);
+  private
+    { private declarations }
+  public
+    { public declarations }
+  end;
+
+STGhost = class(Tthread)
+public
+  dif: integer;
+  TIGhost: TImage;
+  direction: word;
+  index: word;
+  procedure Move(new_top: integer; new_left: integer);
+  procedure test;
+protected
+  Procedure Execute; override;
+end;
+
+type
+SETTINGS = record
+  file_name: string;
+end;
+
+type
+POINT = record
+  x: integer;
+  y: integer;
+end;
+
+var
+  Game_Form: TGame_Form;
+  g_set: SETTINGS;
+
+  finSet: text;
+  finmap: text;
+
+  pac_direction, next_pac_direction: word;
+  pacman: TImage;
+  pac_position: POINT;
+
+  TIpoint: array of TImage;
+  ARghost: array of STGHOST;
+
+  score: integer;
+  point_count: word;
+
+const
+  comp_size = 14;  //speed = 1sek / (comp_size /pac_speed * pac_time) блоков в секунду
+
+  h_exsize = 0;
+  w_exsize = 0;
+
+  small_point_score = 25;
+
+  pac_speed = 1;
+  pac_time = 20;
+
+  dificult_lvl = 4;
+
+  ghost_time = 20;
+  ghost_speed = 1;
+
+
+implementation
+
+{$R *.lfm}
+
+{ TGame_Form }
+
+procedure STghost.move(new_top: integer; new_left: integer);
+begin
+  TIGhost.top := new_top;
+  TIGhost.left := new_left;
+end;
+
+Procedure STghost.Execute;
+begin
+  while not Terminated do begin
+    sleep(ghost_time);
+    //Synchronize(move(TIGhost.top + Ghost_speed, TIghost.left + ghost_speed ));
+    synchronize();
+  end;
+end;
+
+procedure STghost.test;
+begin
+  Game_form.Caption:= '1111';
+end;
+
+procedure TGame_Form.FormDestroy(Sender: TObject);
+var
+  counter: word;
+begin
+  closefile(finMap);
+  closefile(finSet);
+  for counter := 0 to length(ARghost) - 1 do
+    ARghost[counter].Terminate;
+end;
+///////  обработка клавиатуры
+procedure TGame_Form.FormKeyPress(Sender: TObject; var Key: char);
+begin
+  case key of
+  'w','W': next_pac_direction := 1;   //up
+  'a','A': next_pac_direction := 4;   //left
+  'd','D': next_pac_direction := 2;   //right
+  's','S': next_pac_direction := 3;   //down
+  end;
+end;
+
+//////обработка движения пакмана
+procedure TGame_Form.Pac_timerTimer(Sender: TObject);
+var
+  searcher: word;
+begin
+
+ if (pacman.left mod comp_size = 0) and (pacman.top mod comp_size = 0) then begin //блок контроля движения
+
+   if (next_pac_direction = 1) and (map_grid.cells[pac_position.x, pac_position.y - 1] <> '1') then
+     pac_direction := next_pac_direction
+   else if (next_pac_direction = 2) and (map_grid.cells[pac_position.x + 1, pac_position.y] <> '1') then
+     pac_direction := next_pac_direction
+   else if (next_pac_direction = 3) and (map_grid.cells[pac_position.x, pac_position.y + 1] <> '1') then
+     pac_direction := next_pac_direction
+   else if (next_pac_direction = 4) and (map_grid.cells[pac_position.x - 1, pac_position.y] <> '1') then
+     pac_direction := next_pac_direction
+   else if (pac_direction = 0) then
+     pac_direction := next_pac_direction;
+
+    if (map_grid.cells[pac_position.x, pac_position.y] = '4') and (pac_direction <> 0) then begin
+      searcher := 0;
+      while (TIpoint[searcher].name <> 'Point' + IntToStr(pac_position.x) + IntToStr(pac_position.y)) and (searcher < high(TIpoint)) do
+        searcher := searcher + 1;
+
+      TIpoint[searcher].picture := nil;
+      score := score + small_point_score;
+      Game_form.caption:= inttostr(score);
+      map_grid.cells[pac_position.x, pac_position.y] := '0';
+    end;
+ end;
+
+  ///////////////////////////////////////////////////////////////блок обработки движдения
+  if (pac_direction = 1) then begin  //для движения вверх
+
+   if (map_grid.cells[pac_position.x, pac_position.y - 1] = '1') then begin
+     pac_direction := 0;
+   end;
+
+  end else
+  //для движения вправо
+  if (pac_direction = 2) then begin
+
+    if (map_grid.cells[pac_position.x + 1, pac_position.y] = '1') then begin
+      pac_direction := 0;
+    end;
+
+  end else
+  //для движения вниз
+  if (pac_direction = 3) then begin
+
+    if (map_grid.cells[pac_position.x, pac_position.y + 1] = '1') then begin
+      pac_direction := 0;
+    end;
+
+  end else
+  //для движения влево
+  if (pac_direction = 4) then begin
+
+    if (map_grid.cells[pac_position.x - 1, pac_position.y] = '1') then begin
+      pac_direction := 0;
+    end;
+
+  end;
+/////////////////////////////////////////////////////////////// конец блока обработки движения
+
+
+  case pac_direction of
+  1: begin
+       pacman.top := pacman.top - pac_speed;
+       if (pacman.top mod comp_size = 0) then
+         pac_position.y := pac_position.y - 1;
+     end;
+
+  2: begin
+       pacman.left := pacman.left + pac_speed;
+       if (pacman.left mod comp_size = 0) then
+         pac_position.x := pac_position.x + 1;
+     end;
+
+  3: begin
+       pacman.top := pacman.top + pac_speed;
+       if (pacman.top mod comp_size = 0) then
+         pac_position.y := pac_position.y + 1;
+     end;
+
+  4: begin
+       pacman.left := pacman.left - pac_speed;
+       if (pacman.left mod comp_size = 0) then
+         pac_position.x := pac_position.x - 1;
+     end;
+
+
+  end;
+end;
+
+procedure TGame_Form.FormCreate(Sender: TObject);  //считывание и заполнение карты и всех надстроек
+var
+  stmp: string;
+  str_map: word;
+  col_map: word;
+  length_const: word;
+  top_position, left_position: word;
+  pac_counter, ghost_count: word;
+  way: string;
+  point_index: word;
+  TIwall: TImage;
+  dif_count: word;
+  ghost_index: word;
+  array_counter: word;
+
+begin
+ //way:= ExtractFileDir(Application.ExeName);
+ way := GetCurrentDir(); // копируем путь
+
+ assignfile(finSet, way + '\data\data.txt'); // открываем папку настроек
+ {$I-}
+ reset(finSet);
+ {$I+}
+ if (IOResult <> 0) then
+     begin
+       showmessage('#Error: Data file not found.');
+       Game_form.Destroy;
+     end;
+
+ readln(finSet,g_set.file_name);//открываем фаил карты
+ assignfile(finmap, g_set.file_name);
+ {$I-}
+ reset(finmap);
+ {$I+}
+ if (IOResult <> 0) then
+     begin
+       showmessage('#Error: map file not found.');
+       Game_form.Destroy;
+     end;
+
+ str_map:=0; length_const := 0; point_count := 0; //для опроверки прямоугольности карты
+ ghost_count := 0;
+ while (not eof(finmap)) do begin
+   readln(finmap, stmp);
+
+   if (str_map <> 0) then begin  //проверка разности
+    if (length(stmp) <> length_const) then begin
+      showmessage('#ERROR: Broken map file'+#13#10+'in line:'+ intToStr(str_map+1));
+      Game_form.Destroy;
+      exit;
+    end;
+
+   end else if (str_map = 0) then begin //только при первом чтении
+     length_const := length(stmp);
+     map_grid.ColCount:= length_const;
+   end;
+
+   for col_map := 0 to length(stmp) - 1 do begin
+     if (stmp[col_map + 1] = '4') then
+       point_count := point_count + 1
+     else if (stmp[col_map + 1] = '3') then
+       ghost_count := ghost_count + 1;
+
+     map_grid.Cells[col_map, str_map]:= stmp[col_map + 1];
+   end;
+
+   inc(str_map);
+
+   if (not eof(finmap)) then
+       map_grid.RowCount := map_grid.RowCount + 1;
+ end;
+
+
+ if (map_grid.ColCount < 8) or (map_grid.RowCount < 8) then begin
+   ShowMessage('#ERROR: Veri small map');
+   Game_form.Destroy;
+   exit;
+ end;
+
+ Game_Form.Height := map_grid.RowCount * comp_size + H_exsize;
+ Game_Form.Width := map_grid.ColCount * comp_size + W_exsize;
+
+ if (point_count = 0) then begin
+   showmessage('Fatal Error# There are no points on the map');
+   game_form.Destroy;
+   exit;
+ end else
+   SetLength(TIpoint, point_count); //устанавливаем размер масива
+
+ if (ghost_count = 0) then begin
+   showmessage('Fatal Error# There are no ghost on the map');
+ end else
+   SetLength(ARghost, ghost_count); //устанавливаем размер масива
+
+ pac_counter := 0; // чтобы был один пакман
+ point_index := 0;
+ ghost_index := 0;
+ dif_count := 1;
+ for col_map := 0 to map_grid.ColCount - 1 do begin
+   top_position := 0;
+   left_position := comp_size * col_map;
+   for str_map := 0 to map_grid.RowCount - 1 do begin
+     //////////////////////////////////////////////////////pacman
+     if (pac_counter = 0) and (map_grid.Cells[col_map, str_map] = '2') then begin
+
+       pacman := TImage.Create(game_form);
+       pacman.Parent:=Game_Form;
+
+       pacman.Left:= left_position;
+
+       top_position := comp_size * str_map;
+       pacman.Top := top_position ;
+
+       pacman.width := comp_size;
+       pacman.height := comp_size;
+
+       pacman.stretch:= true;
+       pacman.picture.LoadFromFile(way + '\game texture\pacman 50x50.png');
+
+       pac_position.x := col_map;
+       pac_position.y := str_map;
+
+       pac_counter := 1;
+       ///////////////////////////////////////////////////////////////wall
+      end else if (map_grid.Cells[col_map, str_map] = '1') then begin
+
+         TIwall := TImage.Create(game_form);
+         TIwall.Parent:=Game_Form;
+
+         TIwall.Left:= left_position;
+
+         top_position := comp_size * str_map;
+         TIwall.Top := top_position ;
+
+         TIwall.Width:= comp_size;
+         TIwall.Height:= comp_size;
+
+
+         TIwall.stretch:= true;
+
+         TIwall.picture.LoadFromFile(way + '\game texture\wall 50x50.png');
+       ///////////////////////////////////////////////////////////////point
+       end else if (map_grid.Cells[col_map, str_map] = '4') then begin
+
+         TIpoint[point_index] := TImage.Create(game_form);
+         TIpoint[point_index].Parent:=Game_Form;
+
+         TIpoint[point_index].Left:= left_position;
+
+         top_position := comp_size * str_map;
+         TIpoint[point_index].Top := top_position ;
+
+         TIpoint[point_index].Width:= comp_size;
+         TIpoint[point_index].Height:= comp_size;
+
+
+         TIpoint[point_index].stretch:= true;
+
+         TIpoint[point_index].picture.LoadFromFile(way + '\game texture\point 50x50.png');
+         TIpoint[point_index].Name := 'Point' + IntToStr(col_map) + IntToStr(str_map);
+         point_index := point_index + 1;
+       ///////////////////////////////////////////////////////////////ghost
+       end else if (map_grid.Cells[col_map, str_map] = '3') then begin
+         ARghost[ghost_index] := STGhost.Create(true);
+         ARghost[ghost_index].Priority := tpNormal;
+
+         ARghost[ghost_index].direction := dif_count;
+
+         ARghost[ghost_index].dif := dif_count;
+
+         ARghost[ghost_index].TIGhost := TImage.Create(game_form);
+         ARghost[ghost_index].TIghost.Parent:=Game_Form;
+
+         ARghost[ghost_index].TIghost.Left:= left_position;
+
+         top_position := comp_size * str_map;
+         ARghost[ghost_index].TIghost.Top := top_position ;
+
+         ARghost[ghost_index].TIghost.Width:= comp_size;
+         ARghost[ghost_index].TIghost.Height:= comp_size;
+
+
+         ARghost[ghost_index].TIghost.stretch:= true;
+
+         case (ARghost[ghost_index].dif) of
+         0 : ARghost[ghost_index].TIghost.picture.LoadFromFile(way + '\game texture\ghost0 50x50.png');
+         1 : ARghost[ghost_index].TIghost.picture.LoadFromFile(way + '\game texture\ghost1 50x50.png');
+         2 : ARghost[ghost_index].TIghost.picture.LoadFromFile(way + '\game texture\ghost2 50x50.png');
+         3 : ARghost[ghost_index].TIghost.picture.LoadFromFile(way + '\game texture\ghost3 50x50.png');
+         4 : ARghost[ghost_index].TIghost.picture.LoadFromFile(way + '\game texture\ghost4 50x50.png');
+         end;
+
+         ARghost[ghost_index].TIghost.Name := 'Ghost' + IntToStr(ghost_index);
+
+         ghost_index := ghost_index + 1;
+
+         if (dif_count < dificult_lvl) then
+           dif_count := dif_count + 1
+         else
+           dif_count := 1;
+
+       end else if (pac_counter = 1) and (map_grid.Cells[col_map, str_map] = '2' ) then // выводим не фатальную ошибку
+         ShowMessage('Non fatal Error# Repeated pacman texture');
+
+    end;
+
+  end;
+
+  pac_direction := 0;
+  next_pac_direction := 0;
+  score := 0;
+
+  pac_timer.Interval := pac_time;
+  pac_timer.enabled := true;
+
+
+  for array_counter:=0 to length(ARghost) - 1 do //запуск потоков
+    ARghost[array_counter].Resume;
+
+end; // конец процедуры
+
+end.
+

@@ -1,0 +1,78 @@
+object records_Form: Trecords_Form
+  Left = 0
+  Height = 538
+  Top = 0
+  Width = 357
+  BorderStyle = bsSingle
+  Caption = 'records_form'
+  ClientHeight = 538
+  ClientWidth = 357
+  Color = clBackground
+  Font.CharSet = ANSI_CHARSET
+  Font.Height = -17
+  Font.Name = 'Cooper Black'
+  Font.Pitch = fpVariable
+  Font.Quality = fqDraft
+  OnShow = FormShow
+  Position = poDesktopCenter
+  Visible = False
+  object records_Memo: TMemo
+    Left = 0
+    Height = 452
+    Top = 86
+    Width = 357
+    Align = alBottom
+    BorderStyle = bsNone
+    Color = clBackground
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clAqua
+    Font.Height = -17
+    Font.Name = 'Gill Sans Ultra Bold'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    HideSelection = False
+    ParentBidiMode = False
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 0
+  end
+  object InfoLabel: TLabel
+    Left = 8
+    Height = 28
+    Top = 16
+    Width = 240
+    AutoSize = False
+    BidiMode = bdRightToLeft
+    Caption = 'Records board'
+    Color = clBlack
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clYellow
+    Font.Height = -25
+    Font.Name = 'Gill Sans Ultra Bold'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentBidiMode = False
+    ParentColor = False
+    ParentFont = False
+    Transparent = False
+  end
+  object Exit_BitBtn: TBitBtn
+    Left = 280
+    Height = 46
+    Top = 32
+    Width = 64
+    Caption = 'Close'
+    ModalResult = 11
+    TabOrder = 1
+  end
+  object clear_Button: TButton
+    Left = 200
+    Height = 25
+    Top = 53
+    Width = 75
+    Caption = 'Clear'
+    OnClick = clear_ButtonClick
+    TabOrder = 2
+  end
+end

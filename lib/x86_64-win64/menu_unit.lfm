@@ -1,0 +1,69 @@
+object Menu_Form: TMenu_Form
+  Left = 70
+  Height = 479
+  Top = 315
+  Width = 300
+  ActiveControl = Play_bitbut
+  BorderStyle = bsSingle
+  Caption = 'Pacman v1.2'
+  ClientHeight = 0
+  ClientWidth = 0
+  Menu = GameMenu
+  Position = poDesktopCenter
+  LCLVersion = '1.6.0.4'
+  object Play_bitbut: TBitBtn
+    Left = 75
+    Height = 35
+    Top = 176
+    Width = 150
+    Caption = 'Play!'
+    OnClick = Play_bitbutClick
+    TabOrder = 0
+  end
+  object LevelEditor_bitbtn: TBitBtn
+    Left = 75
+    Height = 35
+    Top = 248
+    Width = 150
+    Caption = 'Level Editor'
+    OnClick = LevelEditor_bitbtnClick
+    TabOrder = 1
+  end
+  object Seting_bitbut2: TBitBtn
+    Left = 75
+    Height = 35
+    Top = 322
+    Width = 150
+    Caption = 'Seting'
+    TabOrder = 2
+  end
+  object Exit_bitbut3: TBitBtn
+    Left = 75
+    Height = 35
+    Top = 394
+    Width = 150
+    Caption = '&Exit'
+    Kind = bkClose
+    ModalResult = 11
+    TabOrder = 3
+  end
+  object GameMenu: TMainMenu
+    left = 8
+    top = 8
+    object MenuFile: TMenuItem
+      Caption = 'File'
+      object MenuExit: TMenuItem
+        Caption = 'Exit'
+      end
+    end
+    object MenuHelp: TMenuItem
+      Caption = 'Help'
+      object MenuHelpAct: TMenuItem
+        Caption = 'Help'
+      end
+      object MenuAbout: TMenuItem
+        Caption = 'about game'
+      end
+    end
+  end
+end

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Compiler Value="N:\lazarus\fpc\3.0.0\bin\x86_64-win64\fpc.exe" Date="1231859847"/>
+  <Params Value=" -MObjFPC -Scghi -O1 -g -gl -WG -l -vewnhibq &quot;-FiC:\Users\woipot\Documents\lazarus\pacman Game\test 5\lib\x86_64-win64&quot; -FuN:\lazarus\lcl\units\x86_64-win64\win32 -FuN:\lazarus\lcl\units\x86_64-win64 -FuN:\lazarus\components\lazutils\lib\x86_64-win64 -FuN:\lazarus\packager\units\x86_64-win64 &quot;-FuC:\Users\woipot\Documents\lazarus\pacman Game\test 5\&quot; &quot;-FUC:\Users\woipot\Documents\lazarus\pacman Game\test 5\lib\x86_64-win64\&quot; -dLCL -dLCLwin32 pacman.lpr"/>
+  <Complete Value="False"/>
+</CONFIG>
